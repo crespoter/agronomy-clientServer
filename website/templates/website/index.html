@@ -272,11 +272,7 @@ var fform='<div id="form">'+
    if(a=='2'){
 
 
-// To add the marker to the map, call setMap();
-marker.setMap(map);
-    $(".farm").addClass("active");
-          $(".household").removeClass("active");
-          $(".wells").removeClass("active");
+
           $(".farm").removeClass("active");
           $(".household").removeClass("active");
           $(".wells").addClass("active");
@@ -363,7 +359,7 @@ if(a==undefined ||a=='3'){
                               };
                             }(coords));
                          marker.addListener('click', function(event) {
-                              info = new google.maps.InfoWindow;
+                              infoWindow = new google.maps.InfoWindow;
                               infoWindow.setContent("<p>House hold Image </p>" +"<br>" + '<img src="https://aqueous-island-54862.herokuapp.com/householdimage/'+ element.id+'" style="height:100px;width:200px"/>');
                               infoWindow.open(map,marker);
                               
