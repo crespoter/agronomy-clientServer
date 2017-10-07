@@ -1,0 +1,306 @@
+{% extends 'website/base.html' %}
+
+
+{% block style_script %}
+
+<style>
+
+  table {
+    border-collapse: separate;
+    border-spacing: 50px 0;
+  }
+
+  td {
+    padding: 10px 0;
+  }
+  
+  #map-canvas{
+      margin-top: 3px;
+      border: 1px solid Grey;
+      width:975px;
+      height:500px;
+  }
+
+  .w3-btn {
+    margin-bottom:10px;
+    font-size: 24px;
+  }
+
+</style>
+ 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    
+<title>Agronomy</title>
+    
+{% load staticfiles %}
+    <link href="https://fonts.googleapis.com/css?family=Satisfy" rel="stylesheet">
+    
+
+{% endblock %}
+
+
+
+{% block middle %}
+
+
+
+
+
+
+
+
+    <div class="container-fluid">
+        <div class = "row">
+
+            <div class = "col-md-3" >
+                <div class="colHeight" id="left-panel">
+                </div>
+            </div>
+            
+            <div class = "col-md-9">
+                <div class="colHeight">
+                    <center><div id="map-canvas"></div><center>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCyB6K1CFUQ1RwVJ-nyXxd6W0rfiIBe12Q" type="text/javascript"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+
+
+    <script>
+
+        var citymap = {
+        chicago: {
+          center: {lat: 41.878, lng: -87.629},
+          population: 2714856
+        },
+        newyork: {
+          center: {lat: 40.714, lng: -74.005},
+          population: 8405837
+        },
+        losangeles: {
+          center: {lat: 34.052, lng: -118.243},
+          population: 3857799
+        },
+        vancouver: {
+          center: {lat: 49.25, lng: -123.1},
+          population: 603502
+        }
+      };
+
+
+
+
+
+        var lat = 13.554653400463117;
+        var lng = 80.02738224029542;
+        var map, points = [];
+
+        
+        function yourFunction(lat, lng)
+        {
+            window.location.href = 'redirect/'+lat+'/'+lng+'/'
+        }
+
+
+        function left_panel()
+        {
+            var x=window.location.hostname;
+
+            var html = "<h3 class='centerText'> Present </h3><br>";
+            html += 
+            `<div class="list-group" style="background-color:#008080">
+        <a href="#" class="list-group-item active">
+          Household
+        </a>
+        <a href="#" class="list-group-item">
+          Farms
+        </a>
+        <a href="#" class="list-group-item">
+          Wells
+        </a>
+      </div>`;
+
+
+            document.getElementById("left-panel").innerHTML = html;
+
+        }
+
+
+        function init(){
+
+            var getUrlParameter = function getUrlParameter(sParam) {
+            var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+              sURLVariables = sPageURL.split('&'),
+              sParameterName,
+              i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+};  
+            url=location.search;
+
+var a=getUrlParameter('a') ;
+alert( getUrlParameter('a') );   
+            left_panel();
+var fform='<div id="form">'+
+      +'<table>'+
+      +'<tr>'+'<td>Name:</td> <td><input type="text" id="name"/> </td> </tr>'+
+      '<tr><td>Address:</td> <td><input type="text" id="address"/> </td> </tr>'+
+      '<tr><td>Type:</td> <td><select id="type"> '+
+                 '<option value="bar" SELECTED>bar</option>'+
+                 '<option value="restaurant">restaurant</option>'+
+                 '</select> </td></tr>'+
+                 '<tr><td></td><td><input type="button" value="Save" onclick="saveData()"/></td></tr>'+
+      '</table></div>';
+
+  map = new google.maps.Map(document.getElementById('map-canvas'), {
+          zoom: 6,
+          center: {lat: 8, lng:10},
+          mapTypeId: 'terrain'
+        });
+   for (var city in citymap) {          
+        }
+
+        var iconBase = 'https://maps.google.com/mapfiles/kml/shapes/';
+        if (a=='undefined' || a=='1')
+        {
+       $.getJSON("http://10.0.3.23:1081/farm/?format=json",function(result){
+          result.forEach(function(element){
+            var farmer_details = element;
+            $.getJSON("http://10.0.3.23:1081/points/"+ element.id + "/?format=json",function(result2){
+                data = [];
+                result2.forEach(function(element){
+                  coordinate = {lat:parseFloat(element.lat),lng:parseFloat(element.lon)};
+                  data.push(coordinate);
+                });
+                var area = new google.maps.Polygon({
+                    paths: data,
+                    strokeColor: '#AAA',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35
+                  });
+                  area.setMap(map);
+                  area.addListener('dblclick', function(event){
+                    infoWindow = new google.maps.InfoWindow;
+                    var vertices = this.getPath();
+                    var contentString = '<b>Farm Details</b><br> <p>Crop Season : ' +farmer_details.season_crop +"</p><br/><p>Area : "+ farmer_details.farm_area + "</p>" +'<br> '+fform;
+                    infoWindow.setContent(contentString);
+                    infoWindow.setPosition(event.latLng);
+                    infoWindow.open(map,this);
+
+                  });
+                  
+            });
+        });
+                
+            });
+   }
+   if(a==undefined||a=='2'){
+   $.getJSON("http://10.0.3.23:1081/well/",function(result){
+                result.forEach(function(element){
+                  var marker = new google.maps.Marker({
+                    position: {lat:parseFloat(element.lat),lng:parseFloat(element.lon)},
+                    map: map,
+                    icon:'http://imagineadaywithoutwater.org/sites/imagineadaywithoutwater.org/themes/drybs/favicon.ico',
+                    title: 'Household'
+                  });
+                  marker.addListener('click', function(event) {
+                    $.getJSON("http://10.0.3.23:1081/wateryield/"+ element.id+"/",function(response){
+                      infoWindow = new google.maps.InfoWindow;
+                     
+                      infoWindow.setContent("<p>Well Details </p>" +"<br><p> Water Yield : " + response.yieldd + "<br> <p>Date Measured : " + response.DateTimeField +"</p>"+
+                        "<br/><a href='/static/website/unity/index.html?wateryield=" +response.yieldd + "&depth=100'>" + '<button class="btn btn-info button">3D</button></a>');
+                       infoWindow.open(map,marker);
+                    });
+                  });
+                });
+              });
+}
+if(a=='undefined' || a=='3'){
+            $.getJSON("http://10.0.3.23:1081/household/",function(result){
+                result.forEach(function(element){
+                        console.log(element);
+                        coords = {lat:parseFloat(element.Households_lat),lng:parseFloat(element.Households_lon)};
+                                var marker = new google.maps.Marker({
+                            position:coords,
+                            map: map,
+                            icon:'https://i1.wp.com/vilaggio.net/wp-content/uploads/2017/04/home-house-icon-30021.png?fit=32%2C32',
+                            title: 'Household'
+                         });
+                          $.getJSON("https://aqueous-island-54862.herokuapp.com/profit/person/" + element.Households_vilid ,function(coordsi) {
+                              return function(result) {
+                                if(parseInt(result[0].profit)<10000)
+                                {
+                                  var cityCircle = new google.maps.Circle({
+                                    strokeColor: '#FF0000',
+                                    strokeOpacity: 0.8,
+                                    strokeWeight: 2,
+                                    fillColor: '#FF0000',
+                                    fillOpacity: 0.35,
+                                    map: map,
+                                    center: coordsi,
+                                    radius: Math.sqrt(citymap[city].population) * 100
+                                  });
+                                }
+                                else if(parseInt(result[0].profit)<100000)
+                                {
+                                  var cityCircle = new google.maps.Circle({
+                                    strokeColor: '#00FF00',
+                                    strokeOpacity: 0.8,
+                                    strokeWeight: 2,
+                                    fillColor: '#00FF00',
+                                    fillOpacity: 0.35,
+                                    map: map,
+                                    center: coordsi,
+                                    radius: Math.sqrt(citymap[city].population) * 200
+                                  });
+                                }
+                                else 
+                                {
+                                  var cityCircle = new google.maps.Circle({
+                                    strokeColor: '#0000FF',
+                                    strokeOpacity: 0.8,
+                                    strokeWeight: 2,
+                                    fillColor: '#0000FF',
+                                    fillOpacity: 0.35,
+                                    map: map,
+                                    center: coordsi,
+                                    radius: Math.sqrt(citymap[city].population) * 300
+                                  });
+                                }
+                              };
+                            }(coords));
+                         marker.addListener('click', function(event) {
+                              infoWindow = new google.maps.InfoWindow;
+                              console.log(element.id);
+                              infoWindow.setContent("<p>House hold Image </p>" +"<br>" + '<img src="https://aqueous-island-54862.herokuapp.com/householdimage/'+ element.id+'" style="height:100px;width:200px"/>');
+                              infoWindow.open(map,marker);
+                 });
+                });
+            });
+            }       
+        }
+        window.onload = init;
+
+
+    </script>
+                <script src="https://code.jquery.com/jquery-3.2.1.js"
+            integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    
+{% endblock %}
